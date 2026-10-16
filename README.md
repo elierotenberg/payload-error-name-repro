@@ -1,3 +1,39 @@
+# Reproduction: Payload error messages become "An unknown error occurred." with Next.js 16.4
+
+Created with `npx create-payload-app@3.91.0 -t blank --db sqlite`. Two changes
+from the scaffold:
+
+- `next` is `16.4.2` instead of `16.3.3`.
+- `src/collections/Notes.ts` adds a `notes` collection whose `beforeChange`
+  hook throws `new APIError('Notes are read-only in this reproduction', 403)`.
+
+## Steps
+
+```sh
+cp .env.example .env
+npm install
+npm run build
+npm run start
+curl -X POST -H 'Content-Type: application/json' -d '{"title":"x"}' http://localhost:3000/api/notes
+```
+
+Expected (and the result with `next` 16.3.3):
+
+```json
+{"errors":[{"message":"Notes are read-only in this reproduction"}]}
+```
+
+Actual with `next` 16.4.2:
+
+```json
+{"errors":[{"message":"An unknown error occurred."}]}
+```
+
+The status stays 403. `npm run dev` does not reproduce it, because the
+development build does not minify server code.
+
+---
+
 # Payload Blank Template
 
 This template comes configured with the bare minimum to get started on anything you need.
